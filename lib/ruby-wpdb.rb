@@ -50,38 +50,32 @@ module WPDB
     def from_wpconfig(file)
       lines = [], table_prefix = nil
       File.open(file).each_line do |line|
-        line.strip!
-        lines.push line if line.include? "define("
+        lines.push(line.strip) if line.include? "define("
         table_prefix = extract_value(line) if line.include? "$table_prefix"
       end
       wpconfig_to_hash(lines).merge( {"TABLE_PREFIX" => table_prefix} )
     end
 
-    def wpconfig_to_hash(lines)
-      config = {}
-      lines.map do |setting|
-        setting = setting.split(",", 2)
-        setting.map! do |el|
-          format_value(el)
-        end
-        config[setting[0]] = setting[1]
-      end
-      config
-    end
-
-    def format_value(val)
-      val.strip!
-      val = true               if val.to_s.downcase.include? "true"
-      val = false              if val.to_s.downcase.include? "false"
-      val = val.to_i           if val.to_s.to_i.to_s == val
-      val = extract_value(val) if val.kind_of?(String) && !val.to_s.empty?
-      val
-    end
-
+  private
     def extract_value(string)
       string[/\'[^']*\'/].to_s.gsub(/\'/, "")
     end
 
+    def format_value(val)
+      val.strip!.to_s
+      return true     if val.downcase.include? "true"
+      return false    if val.downcase.include? "false"
+      return val.to_i if val.to_i.to_s == val
+      extract_value(val)
+    end
+    
+    def wpconfig_to_hash(lines)
+      config = {}
+      lines.map do |setting|
+        setting = setting.split(",", 2).map { |el| format_value(el) }
+        config[setting[0]] = setting[1]
+      end
+      config
+    end
   end
 end
-
