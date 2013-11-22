@@ -1,5 +1,7 @@
 require_relative 'test_helper'
 
+load_yaml_config
+
 describe WPDB::Term do
   before do
     @term = WPDB::Term.create(:name => 'test')

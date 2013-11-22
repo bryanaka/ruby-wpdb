@@ -1,39 +1,64 @@
 require_relative 'test_helper'
 
 describe WPDB do
-	before do
-		config_file = <<-EOF
-<?php
-define('DB_NAME', 'ruby-wp');
-define('DB_USER', 'ddh');
-define('DB_PASSWORD', 'password');
-define('DB_HOST', 'localhost');
-define('DB_CHARSET', 'utf8');
-define('DB_COLLATE', '');
 
-// random alphanumberic chars
-define('AUTH_KEY',         '3vm93nbdo0eL@Fz9c72bas83ba0');
-define('SECURE_AUTH_KEY',  'ErBc+na3o,n3-dklsduR#DC_6J8');
-define('LOGGED_IN_KEY',    ',m-y/[ash38dm<L`=k|]BXm|]T|');
+	describe '#from_config with wordpress config' do
+		before do
+			load_wpconfig
+			Sequel.expects(:connect).returns(true)
+		end
 
-$table_prefix  = 'wp_';
-
-// test integers
-define('PORT_NUMBER', 8097);
-
-//test booleans
-define('CANIHAZ',           false);
-define('WP_SHARKNADO_MODE', true);
-
-define('WPLANG', '');
-
-EOF
-	File.expect(:open, StringIO.new(config_file) )
-	@config = WPDB.from_wpconfig(config_file)
+		it 'parses string-based options correctly' do
+			assert_equal WPDB.config['DB_NAME'], 'ruby-wp'
+			assert_equal WPDB.config['DB_USER'], 'dhh'
+			assert_equal WPDB.config['SECURE_AUTH_KEY'], 'ErBc+na3o,n3-dklsduR#DC_6J8'
+		end
+	
+		it 'parses empty string options correctly' do
+			assert_equal WPDB.config['WPLANG'], ''
+		end
+	
+		it 'parses boolean-based options correctly' do
+			assert_equal WPDB.config['CANIHAZ'], false
+			assert_equal WPDB.config['WP_SHARKNADO_MODE'], true
+		end
+	
+		it 'parses interger-based options correctly' do
+			assert_equal WPDB.config['PORT_NUMBER'], 8097
+		end
+	
+		it 'parses the table prefix correctly' do
+			assert_equal WPDB.config['TABLE_PREFIX'], 'wp_'
+		end
 	end
 
-	it '#from_wpconfig parses correctly' do
-		assert_equal @config['DB_NAME'], 'ruby-wp'
-	end
+	# describe '#from_config with YAML file' do
+	# 	before do
+	# 		WPDB.from_config( File.expand_path('../support/wp-config.yml', __FILE__) )
+	# 	end
+
+	# 	it 'parses string-based options correctly' do
+	# 		assert_equal WPDB.config['DB_NAME'], 'ruby-wp'
+	# 		assert_equal WPDB.config['DB_USER'], 'dhh'
+	# 		assert_equal WPDB.config['SECURE_AUTH_KEY'], 'ErBc+na3o,n3-dklsduR#DC_6J8'
+	# 	end
+	
+	# 	it 'parses empty string options correctly' do
+	# 		assert_equal WPDB.config['WPLANG'], ''
+	# 	end
+	
+	# 	it 'parses boolean-based options correctly' do
+	# 		assert_equal WPDB.config['CANIHAZ'], false
+	# 		assert_equal WPDB.config['WP_SHARKNADO_MODE'], true
+	# 	end
+	
+	# 	it 'parses interger-based options correctly' do
+	# 		assert_equal WPDB.config['PORT_NUMBER'], 8097
+	# 	end
+	
+	# 	it 'parses the table prefix correctly' do
+	# 		assert_equal WPDB.config['TABLE_PREFIX'], 'wp_'
+	# 	end
+	# end
 
 end
